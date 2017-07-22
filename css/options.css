@@ -1,0 +1,64 @@
+.auto-container,
+.manu-container {
+  padding: 10px 0 10px 12px;
+}
+
+input[name='platform'] {
+  margin-left: 10px;
+}
+
+.enter-container {
+  margin-top: 20px;
+}
+
+.enter-query-interval {
+  display: inline-block;
+
+  padding-left: 22px;
+}
+
+#query-interval {
+  display: inline-block;
+
+  width: 30px;
+}
+
+#notice {
+  margin-left: 10px;
+
+  color: #f00;
+}
+
+.hidden {
+  opacity: 0;
+}
+
+.btns-container {
+  float: right;
+
+  margin: 8px;
+}
+
+.btn {
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+
+  border: 1px solid #d4d4d4;
+  border-radius: .2em;
+  outline: none;
+  background-color: #ececec;
+}
+
+.btn-close {
+  margin-left: 4px;
+}
+
+.btn:hover {
+  text-decoration: none;
+
+  color: #fff;
+  border-color: #3072b3;
+  border-bottom-color: #2a65a0;
+  background-color: #3c8dde;
+}

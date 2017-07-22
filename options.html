@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Options</title>
+  <link rel="stylesheet" href="css/options.css">
+</head>
+
+<body>
+  <input type="radio" name="type" value="auto"> 自动模式 <br/> 
+
+  <div class="auto-container">
+    <input type="checkbox" name="platform" value="douyu"> 斗鱼 
+    <input type="checkbox" name="platform" value="panda"> 熊猫
+    <input type="checkbox" name="platform" value="zhanqi"> 战旗
+    <input type="checkbox" name="platform" value="huya"> 虎牙
+  </div>
+
+  <input type="radio" name="type" value="manu"> 手动模式 <br/> 
+  
+  <div class="enter-container">
+    <input type="checkbox" id="notification"> 是否开启浏览器通知 <br/>
+    <p class="enter-query-interval">后台查询间隔(分钟)：</p>
+    <input type="number" id="query-interval" min="1" disabled>
+    <span class="hidden" id="notice">无效的输入</span>
+  </div>
+
+  <div class="btns-container">
+    <button class="btn" id="btn-save">确认</button>
+    <button class="btn btn-close" id="btn-close">取消</button>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/options.js"></script>
+</body>
+
+</html>
