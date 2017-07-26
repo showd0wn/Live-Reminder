@@ -9,6 +9,7 @@
     "*://*.panda.tv/*",
     "*://*.zhanqi.tv/*",
     "*://*.huya.com/*",
+    "*://*.huomao.com/*",
     "storage",
     "notifications",
     "background",

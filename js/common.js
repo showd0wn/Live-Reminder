@@ -12,7 +12,8 @@
       douyu: 'http://www.douyu.com/member/cp/get_follow_list',
       panda: 'http://www.panda.tv/ajax_get_follow_rooms',
       zhanqi: 'https://www.zhanqi.tv/api/user/follow.listall',
-      huya: 'http://fw.huya.com/dispatch?do=subscribeList&uid='
+      huya: 'http://fw.huya.com/dispatch?do=subscribeList&uid=',
+      huomao: 'https://www.huomao.com/subscribe/getUsersSubscribe'
     }
   };
 
@@ -29,7 +30,7 @@
   L.getConfig = function() {
     return {
       type: until.output(localStorage.getItem('type'), 'auto'),
-      platforms: until.output(localStorage.getItem('platforms'), 'douyu,panda,zhanqi,huya'),
+      platforms: until.output(localStorage.getItem('platforms'), 'douyu,panda,zhanqi,huya,huomao'),
       enableNotification: until.output(localStorage.getItem('enableNotification'), 'true'),
       queryInterval: until.output(localStorage.getItem('queryInterval'), '10')
     }
@@ -121,6 +122,22 @@
             });
             callback(result, 'huya');
           });
+        });
+        break;
+      case 'huomao':
+        L.getInfo(until.API['huomao'], function(resp) {
+          resp.data.usersSubChannels.filter(function(i) {
+            return i.is_live === 1;
+          }).forEach(function(i) {
+            result.push({
+              cover: i.image,
+              name: i.channel,
+              owner: i.nickname,
+              audience: i.views,
+              url: 'https://www.huomao.com/' + i.room_number
+            });
+          });
+          callback(result, 'huomao');
         });
         break;
     }
