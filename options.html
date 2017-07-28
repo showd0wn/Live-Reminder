@@ -9,27 +9,35 @@
 
 <body>
   <input type="radio" name="type" value="auto"> 自动模式 <br/> 
-
   <div class="auto-container">
     <input type="checkbox" name="platform" value="douyu"> 斗鱼 
     <input type="checkbox" name="platform" value="panda"> 熊猫
     <input type="checkbox" name="platform" value="zhanqi"> 战旗
-    <input type="checkbox" name="platform" value="huya"> 虎牙
     <input type="checkbox" name="platform" value="huomao"> 火猫
+    <input type="checkbox" name="platform" value="huya"> 虎牙
   </div>
 
   <input type="radio" name="type" value="manu"> 手动模式 <br/> 
-  
+  <div class="manu-container">
+    <select name="platforms" id="selection">
+      <option value="panda">熊猫</option>
+    </select>
+    <input type="text" name="room-id" placeholder="请输入房间号或者房间名">
+    <button class="btn" id="btn-add">添加</button>
+    <span class="notice hidden" id="add-room-notice"></span>
+    <div id="rooms-list"></div>
+  </div>
+
   <div class="enter-container">
     <input type="checkbox" id="notification"> 是否开启浏览器通知 <br/>
-    <p class="enter-query-interval">后台查询间隔(分钟)：</p>
+    <span class="enter-query-interval">后台查询间隔(分钟)：</span>
     <input type="number" id="query-interval" min="1" disabled>
-    <span class="hidden" id="notice">无效的输入</span>
+    <span class="notice hidden" id="query-interval-notice"></span>
   </div>
 
   <div class="btns-container">
     <button class="btn" id="btn-save">确认</button>
-    <button class="btn btn-close" id="btn-close">取消</button>
+    <button class="btn" id="btn-close">取消</button>
   </div>
 
   <script src="js/common.js"></script>

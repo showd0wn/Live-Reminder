@@ -11,9 +11,10 @@
     API: {
       douyu: 'http://www.douyu.com/member/cp/get_follow_list',
       panda: 'http://www.panda.tv/ajax_get_follow_rooms',
+      pandaRoom: 'http://www.panda.tv/api_room_v2?roomid=',
       zhanqi: 'https://www.zhanqi.tv/api/user/follow.listall',
-      huya: 'http://fw.huya.com/dispatch?do=subscribeList&uid=',
-      huomao: 'https://www.huomao.com/subscribe/getUsersSubscribe'
+      huomao: 'https://www.huomao.com/subscribe/getUsersSubscribe',
+      huya: 'http://fw.huya.com/dispatch?do=subscribeList&uid='
     }
   };
 
@@ -30,10 +31,11 @@
   L.getConfig = function() {
     return {
       type: until.output(localStorage.getItem('type'), 'auto'),
-      platforms: until.output(localStorage.getItem('platforms'), 'douyu,panda,zhanqi,huya,huomao'),
+      rooms: until.output(localStorage.getItem('rooms'), ''),
+      platforms: until.output(localStorage.getItem('platforms'), 'douyu,panda,zhanqi,huomao,huya'),
       enableNotification: until.output(localStorage.getItem('enableNotification'), 'true'),
       queryInterval: until.output(localStorage.getItem('queryInterval'), '10')
-    }
+    };
   };
 
   L.setConfig = function(config) {
@@ -61,6 +63,7 @@
         L.getInfo(until.API['douyu'], function(resp) {
           resp.room_list.forEach(function(i) {
             result.push({
+              isLive: true,
               cover: i.room_src,
               name: i.room_name,
               owner: i.nickname,
@@ -77,6 +80,7 @@
             return i.status === '2';
           }).forEach(function(i) {
             result.push({
+              isLive: true,
               cover: i.pictures.img,
               name: i.name,
               owner: i.userinfo.nickName,
@@ -93,6 +97,7 @@
             return i.status === '4';
           }).forEach(function(i) {
             result.push({
+              isLive: true,
               cover: i.bpic,
               name: i.title,
               owner: i.nickname,
@@ -101,6 +106,23 @@
             });
           });
           callback(result, 'zhanqi');
+        });
+        break;
+      case 'huomao':
+        L.getInfo(until.API['huomao'], function(resp) {
+          resp.data.usersSubChannels.filter(function(i) {
+            return i.is_live === 1;
+          }).forEach(function(i) {
+            result.push({
+              isLive: true,
+              cover: i.image,
+              name: i.channel,
+              owner: i.nickname,
+              audience: i.views,
+              url: 'https://www.huomao.com/' + i.room_number
+            });
+          });
+          callback(result, 'huomao');
         });
         break;
       case 'huya':
@@ -113,6 +135,7 @@
               return i.isLive === true;
             }).forEach(function(i) {
               result.push({
+                isLive: true,
                 cover: i.screenshot,
                 name: i.intro,
                 owner: i.nick,
@@ -122,22 +145,6 @@
             });
             callback(result, 'huya');
           });
-        });
-        break;
-      case 'huomao':
-        L.getInfo(until.API['huomao'], function(resp) {
-          resp.data.usersSubChannels.filter(function(i) {
-            return i.is_live === 1;
-          }).forEach(function(i) {
-            result.push({
-              cover: i.image,
-              name: i.channel,
-              owner: i.nickname,
-              audience: i.views,
-              url: 'https://www.huomao.com/' + i.room_number
-            });
-          });
-          callback(result, 'huomao');
         });
         break;
     }
@@ -151,18 +158,72 @@
     }
   };
 
+  L.getRoomInfo = function(room, callback) {
+    var roomArray = room.split('_');
+    var platform = roomArray[0];
+    var roomId = roomArray[2];
+    switch (platform) {
+      case 'panda':
+        L.getInfo(until.API['pandaRoom'] + roomId, function(resp) {
+          if (resp.errno) return;
+          var data = resp.data;
+          callback({
+            isLive: data.videoinfo.status === '2',
+            owner: data.hostinfo.name,
+            name: data.roominfo.name,
+            cover: data.roominfo.pictures.img,
+            audience: data.roominfo.person_num,
+            url: 'https://www.panda.tv/' + data.roominfo.id
+          }, room);
+        });
+        break;
+    }
+  };
+
+  L.getRoomsInfo = function(rooms, callback) {
+    var rooms = rooms.split(',');
+    if (!rooms.length) return;
+    while (rooms.length) {
+      liveReminder.getRoomInfo(rooms.shift(), callback);
+    }
+  };
+
+  L.addRoom = function(platform, roomId, callback) {
+    switch (platform) {
+      case 'panda':
+        L.getInfo(until.API['pandaRoom'] + roomId, function(resp) {
+          if (!resp.errno) {
+            callback(1, platform + '_' + resp.data.hostinfo.name + '_' + roomId);
+          } else {
+            callback(0, resp.errmsg);
+          }
+        });
+        break;
+    }
+  };
+
   L.addAlarmHandler = function(config) {
     chrome.alarms.onAlarm.addListener(function(alarm) {
       if (alarm.name !== 'checkSubscriptions') return;
       if (config.type === 'auto') {
         L.getPlatformsInfo(config.platforms, function(value, platform) {
           if (typeof cachedItems[platform] !== 'undefined') {
-            var goOnline = L.goOnline(value, cachedItems[platform]);
-            var goOffline = L.goOnline(cachedItems[platform], value);
+            var goOnline = L.goOnlineAuto(value, cachedItems[platform]);
+            var goOffline = L.goOnlineAuto(cachedItems[platform], value);
             goOnline.length && goOnline.forEach(L.showNotification);
             goOffline.length && goOffline.forEach(L.clearNotification);
           }
           cachedItems[platform] = value;
+        });
+      } else if (config.type === 'manu') {
+        L.getRoomsInfo(config.rooms, function(value, room) {
+          if (typeof cachedItems[room] !== 'undefined') {
+            var goOnline = L.goOnlineManu(value, cachedItems[room]);
+            var goOffline = L.goOnlineManu(cachedItems[room], value);
+            goOnline && L.showNotification(value);
+            goOffline && L.clearNotification(value);
+          }
+          cachedItems[room] = value;
         });
       }
     });
@@ -170,7 +231,7 @@
 
   L.addNotificationHandler = function() {
     chrome.notifications.onClicked.addListener(function(id) {
-      if (!/^liveReminder/.test(id)) {
+      if (/^liveReminder/.test(id)) {
         chrome.tabs.create({ url: id.replace('liveReminder-', '') });
       }
     });
@@ -190,10 +251,14 @@
     chrome.notifications.clear('liveReminder-' + data.url);
   };
 
-  L.goOnline = function(current, last) {
+  L.goOnlineAuto = function(current, last) {
     return current.filter(function(v) {
       return last.every(function(e) { return e.url !== v.url });
     });
+  };
+
+  L.goOnlineManu = function(current, last) {
+    return current.isLive && !last.isLive;
   };
 
 })(window);
