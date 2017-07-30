@@ -10,6 +10,7 @@
     },
     API: {
       douyu: 'http://www.douyu.com/member/cp/get_follow_list',
+      douyuRoom: 'http://open.douyucdn.cn/api/RoomApi/room/',
       panda: 'http://www.panda.tv/ajax_get_follow_rooms',
       pandaRoom: 'http://www.panda.tv/api_room_v2?roomid=',
       zhanqi: 'https://www.zhanqi.tv/api/user/follow.listall',
@@ -163,6 +164,20 @@
     var platform = roomArray[0];
     var roomId = roomArray[2];
     switch (platform) {
+      case 'douyu':
+        L.getInfo(until.API['douyuRoom'] + roomId, function(resp) {
+          if (resp.error) return;
+          var data = resp.data;
+          callback({
+            isLive: data.room_status === '1',
+            owner: data.owner_name,
+            name: data.room_name,
+            cover: data.room_thumb,
+            audience: data.online,
+            url: 'https://www.douyu.com/' + data.room_id
+          }, room);
+        });
+        break;
       case 'panda':
         L.getInfo(until.API['pandaRoom'] + roomId, function(resp) {
           if (resp.errno) return;
@@ -190,10 +205,21 @@
 
   L.addRoom = function(platform, roomId, callback) {
     switch (platform) {
+      case 'douyu':
+        L.getInfo(until.API['douyuRoom'] + roomId, function(resp) {
+          if (!resp.error) {
+            callback(1, platform + '_' + resp.data.owner_name + '_' + resp.data.room_id);
+          } else {
+            callback(0, resp.data);
+          }
+        });
+        break;
+    }
+    switch (platform) {
       case 'panda':
         L.getInfo(until.API['pandaRoom'] + roomId, function(resp) {
           if (!resp.errno) {
-            callback(1, platform + '_' + resp.data.hostinfo.name + '_' + roomId);
+            callback(1, platform + '_' + resp.data.hostinfo.name + '_' + resp.data.roominfo.id);
           } else {
             callback(0, resp.errmsg);
           }
